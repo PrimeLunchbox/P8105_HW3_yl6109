@@ -23,15 +23,6 @@ library(dplyr)
     ##     intersect, setdiff, setequal, union
 
 ``` r
-devtools::install_github("p8105/p8105.datasets")
-```
-
-    ## Using GitHub PAT from the git credential store.
-
-    ## Skipping install of 'p8105.datasets' from a github remote, the SHA1 (9abaf8c0) has not changed since last install.
-    ##   Use `force = TRUE` to force installation
-
-``` r
 library(p8105.datasets)
 
 data("instacart") 
@@ -82,14 +73,41 @@ library(ggplot2)
 plot_df %>% 
   mutate(order_num_category = if_else(total_orders > 200000, "High", if_else(total_orders > 50000, "Medium", "Low")
   )) %>% 
+  # for facet display order:
   mutate(order_num_category = factor(order_num_category, levels = c("High", "Medium", "Low"))) %>% 
+  # set the aisle display order in plot.
   ggplot(aes(y = reorder(aisle, total_orders), x = total_orders)) + 
   geom_col() +
   labs(title = "Aisles with 10000+ Orders", x = "Number of Orders", y = "Aisle") + 
+  # add order number labels to the columns.
   geom_text(aes(label = format(total_orders, big.mark = ",")), hjust = -.05, size = 3) + 
   facet_grid(order_num_category ~ ., scales = "free_y", space = "free_y") +
+  # expand x axis from the right side.
   scale_x_continuous(expand = expansion(mult = c(0, .1))) + 
   theme(plot.title = element_text(hjust = .5))
 ```
 
 ![](hw3_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+
+### Table: three most popular items in ‘baking ingredients’, ‘dog food care’ and ‘packaged vegetables fruits’ with number of orders.
+
+``` r
+df_for_table = insta_ez_to_read %>% 
+  select(order_number, aisle, product_name) %>% 
+  group_by(product_name) %>% 
+  summarise(total_orders = sum(order_number), 
+            aisle = first(aisle)) %>% 
+  filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits" )) %>% 
+  group_by(aisle) %>% 
+  slice_max(total_orders, n = 1) %>% 
+  ungroup() %>% 
+  select(aisle, everything()) %>% 
+  print()
+```
+
+    ## # A tibble: 3 × 3
+    ##   aisle                      product_name                 total_orders
+    ##   <chr>                      <chr>                               <int>
+    ## 1 baking ingredients         Light Brown Sugar                    8605
+    ## 2 dog food care              Standard Size Pet Waste bags          675
+    ## 3 packaged vegetables fruits Organic Baby Spinach               171301
