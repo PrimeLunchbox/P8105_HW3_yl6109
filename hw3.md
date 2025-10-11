@@ -30,6 +30,8 @@ insta_ez_to_read = instacart %>%
   select(aisle, everything())
 ```
 
+### 1-1. How many aisles are there, and which aisles are the most items ordered from?
+
 ``` r
 # group by same aisles and sum up the order number for the same group 
 total_aisle_df = insta_ez_to_read %>% 
@@ -63,7 +65,7 @@ According to the printed results, there are 134 different aisles, and
 the most items are ordered from fresh vegetables, with 150609 orders in
 total.
 
-### make a plot
+### 1-2. make a plot
 
 ``` r
 plot_df = total_aisle_df %>% 
@@ -84,7 +86,7 @@ plot_df %>%
 
 ![](hw3_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
-### Table: three most popular items in ‘baking ingredients’, ‘dog food care’ and ‘packaged vegetables fruits’ with number of orders.
+### 1-3. Table: three most popular items in ‘baking ingredients’, ‘dog food care’ and ‘packaged vegetables fruits’ with number of orders.
 
 ``` r
 df_for_table = insta_ez_to_read %>% 
@@ -107,7 +109,7 @@ df_for_table = insta_ez_to_read %>%
     ## 2 dog food care              Snack Sticks Chicken & Rice Recipe Do…           30
     ## 3 packaged vegetables fruits Organic Baby Spinach                           9784
 
-### Table: mean hour of the day at which pink lady apples and coffee ice cream are ordered on each day of the week.
+### 1-4. Table: mean hour of the day at which pink lady apples and coffee ice cream are ordered on each day of the week.
 
 ``` r
 library(tidyr)
@@ -145,3 +147,228 @@ df_for_table2 = insta_ez_to_read %>%
     ## 5 Thursday                    11.6                     15.2
     ## 6 Friday                      12.8                     12.3
     ## 7 Saturday                    11.9                     13.8
+
+## Problem 2
+
+``` r
+zillow_df = readr::read_csv("./data/zip_nyc.csv") %>% 
+  janitor::clean_names()
+```
+
+    ## Rows: 149 Columns: 125
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr   (6): RegionType, StateName, State, City, Metro, CountyName
+    ## dbl (119): RegionID, SizeRank, RegionName, 2015-01-31, 2015-02-28, 2015-03-3...
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+a_zillow_df = zillow_df %>% 
+  pivot_longer(c("x2015_01_31":"x2024_08_31"), 
+               names_to = "date", 
+               names_prefix = "x")
+
+zip_count = a_zillow_df %>% 
+  filter(!is.na(value)) %>%
+  group_by(region_name) %>% 
+  summarise(count = n())
+```
+
+### 2-1-a. How many ZIP codes are observed 116 times?
+
+``` r
+obs_116_times = zip_count %>% 
+  filter(count == 116) %>% 
+  print()
+```
+
+    ## # A tibble: 48 × 2
+    ##    region_name count
+    ##          <dbl> <int>
+    ##  1       10001   116
+    ##  2       10002   116
+    ##  3       10003   116
+    ##  4       10005   116
+    ##  5       10010   116
+    ##  6       10012   116
+    ##  7       10013   116
+    ##  8       10014   116
+    ##  9       10017   116
+    ## 10       10018   116
+    ## # ℹ 38 more rows
+
+According to the printed results, there are 48 zip codes that were
+observed 116 times in total.
+
+### 2-1-b. How many are observed fewer than 10 times?
+
+``` r
+obs_less_than_10 = zip_count %>% 
+  filter(count < 10) %>% 
+  print()
+```
+
+    ## # A tibble: 26 × 2
+    ##    region_name count
+    ##          <dbl> <int>
+    ##  1       10044     9
+    ##  2       10162     2
+    ##  3       10303     2
+    ##  4       10308     3
+    ##  5       10453     1
+    ##  6       10455     3
+    ##  7       10456     4
+    ##  8       10459     2
+    ##  9       10460     2
+    ## 10       10470     1
+    ## # ℹ 16 more rows
+
+According to the printed results, there are 26 zip codes that were
+observed less than 10 times.
+
+### 2-1-c. Why are some ZIP codes are observed rarely and others observed in each month?
+
+According to a_zillow_df, differences in zip code observation times may
+due to the various data collection starting time. For example, 11368 was
+first observed from 2023-01-31, which may imply that the data collection
+in this area began later. Besides, there is also possibility that some
+zip codes were merged or split due to administrative changes, which can
+lead to the discontinuity and incomplete of these historical data.
+
+### 2-2-a. Table: average rental price in wach borough and year.
+
+``` r
+queens_df = a_zillow_df %>% 
+  separate(date, c("year", "month","day")) %>% 
+  filter(county_name == "Queens County") %>% 
+  group_by(year) %>% 
+  summarise(ave_rental_prices = mean(value, na.rm = TRUE))
+
+kings_df = a_zillow_df %>% 
+  separate(date, c("year", "month","day")) %>% 
+  filter(county_name == "Kings County") %>% 
+  group_by(year) %>% 
+  summarise(ave_rental_prices = mean(value, na.rm = TRUE))
+
+richmond_df = a_zillow_df %>% 
+  separate(date, c("year", "month","day")) %>% 
+  filter(county_name == "Richmond County") %>% 
+  group_by(year) %>% 
+  summarise(ave_rental_prices = mean(value, na.rm = TRUE))
+
+bronx_df = a_zillow_df %>% 
+  separate(date, c("year", "month","day")) %>% 
+  filter(county_name == "Bronx County") %>% 
+  group_by(year) %>% 
+  summarise(ave_rental_prices = mean(value, na.rm = TRUE))
+
+ny_df = a_zillow_df %>% 
+  separate(date, c("year", "month","day")) %>% 
+  filter(county_name == "New York County") %>% 
+  group_by(year) %>% 
+  summarise(ave_rental_prices = mean(value, na.rm = TRUE))
+
+p22a_df = bind_rows(
+  queens_df %>% mutate(county = "Queens"), 
+  kings_df %>% mutate(county = "Kings"), 
+  richmond_df %>% mutate(county = "Richmond"),
+  bronx_df %>% mutate(county = "Bronx"),
+  ny_df %>% mutate(county = "New York")) %>% 
+  pivot_wider(names_from = county, 
+              values_from = ave_rental_prices) %>% 
+  print()
+```
+
+    ## # A tibble: 10 × 6
+    ##    year  Queens Kings Richmond Bronx `New York`
+    ##    <chr>  <dbl> <dbl>    <dbl> <dbl>      <dbl>
+    ##  1 2015   2215. 2493.     NaN  1760.      3022.
+    ##  2 2016   2272. 2520.     NaN  1520.      3039.
+    ##  3 2017   2263. 2546.     NaN  1544.      3134.
+    ##  4 2018   2292. 2547.     NaN  1639.      3184.
+    ##  5 2019   2388. 2631.     NaN  1706.      3310.
+    ##  6 2020   2316. 2555.    1978. 1811.      3107.
+    ##  7 2021   2211. 2550.    2045. 1858.      3137.
+    ##  8 2022   2406. 2868.    2147. 2054.      3778.
+    ##  9 2023   2562. 3015.    2333. 2285.      3933.
+    ## 10 2024   2694. 3127.    2536. 2497.      4078.
+
+### 2-2-b Comment on the table.
+
+Overall speaking, all boroughs show an increase in rental prices from
+2015 to 2024. The New York County stays the most expensive throughout
+the whole 10 years, followed by Kings, Queens, Richmond and Bronx.
+Rental prices in Queens and Kings County decreased from 2019 to 2021,
+rental prices in New York County decreased sharply from 2019 to 2020,
+probably due to the COVID-19 pandemic. While rental price in Richmond
+County increased from 2020 to 2024 and rental price of Bronx County kept
+increasing throughout the whole period observed.
+
+### 2-3-a
+
+``` r
+queens_23a_df = a_zillow_df %>% 
+  separate(date, c("year", "month","day")) %>% 
+  filter(county_name == "Queens County") %>% 
+  group_by(region_name, year) %>% 
+  summarise(county = "Queens", ave_rental_prices = mean(value, na.rm = TRUE))
+```
+
+    ## `summarise()` has grouped output by 'region_name'. You can override using the
+    ## `.groups` argument.
+
+``` r
+kings_23a_df = a_zillow_df %>% 
+  separate(date, c("year", "month","day")) %>% 
+  filter(county_name == "Kings County") %>% 
+  group_by(region_name, year) %>% 
+  summarise(county = "Kings", ave_rental_prices = mean(value, na.rm = TRUE))
+```
+
+    ## `summarise()` has grouped output by 'region_name'. You can override using the
+    ## `.groups` argument.
+
+``` r
+richmond_23a_df = a_zillow_df %>% 
+  separate(date, c("year", "month","day")) %>% 
+  filter(county_name == "Richmond County") %>% 
+  group_by(region_name, year) %>% 
+  summarise(county = "Richmond", ave_rental_prices = mean(value, na.rm = TRUE))
+```
+
+    ## `summarise()` has grouped output by 'region_name'. You can override using the
+    ## `.groups` argument.
+
+``` r
+bronx_23a_df = a_zillow_df %>% 
+  separate(date, c("year", "month","day")) %>% 
+  filter(county_name == "Bronx County") %>% 
+  group_by(region_name, year) %>% 
+  summarise(county = "Bronx", ave_rental_prices = mean(value, na.rm = TRUE))
+```
+
+    ## `summarise()` has grouped output by 'region_name'. You can override using the
+    ## `.groups` argument.
+
+``` r
+ny_23a_df = a_zillow_df %>% 
+  separate(date, c("year", "month","day")) %>% 
+  filter(county_name == "New York County") %>% 
+  group_by(region_name, year) %>% 
+  summarise(county = "New York", ave_rental_prices = mean(value, na.rm = TRUE))
+```
+
+    ## `summarise()` has grouped output by 'region_name'. You can override using the
+    ## `.groups` argument.
+
+``` r
+p23a_df = bind_rows(kings_23a_df, queens_23a_df, richmond_23a_df, bronx_23a_df, ny_23a_df)
+
+p23a_plot = p23a_df %>% 
+  ggplot(aes(x = year, y = ave_rental_prices, fill = as.factor(region_name))) +
+  geom_col() + 
+  facet_grid(. ~ county) + 
+  scale_fill_viridis_d()
+```
