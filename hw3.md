@@ -3,6 +3,8 @@ p8105_hw3_yl2625
 Yurou Liu
 2025-10-07
 
+## Problem 1
+
 load in data
 
 ``` r
@@ -21,7 +23,18 @@ library(dplyr)
     ##     intersect, setdiff, setequal, union
 
 ``` r
-load("./data/instacart.rda")
+devtools::install_github("p8105/p8105.datasets")
+```
+
+    ## Using GitHub PAT from the git credential store.
+
+    ## Skipping install of 'p8105.datasets' from a github remote, the SHA1 (9abaf8c0) has not changed since last install.
+    ##   Use `force = TRUE` to force installation
+
+``` r
+library(p8105.datasets)
+
+data("instacart") 
 insta_ez_to_read = instacart %>% 
   select(order_number, aisle, everything())
 ```
@@ -57,3 +70,26 @@ print(best_seller)
 
 There are 134 different aisles, and most items are ordered form fresh
 fruits, with 2787084 orders in total.
+
+### make a plot
+
+``` r
+plot_df = total_aisle_df %>% 
+  filter(total_orders > 10000)
+
+library(ggplot2)
+
+plot_df %>% 
+  mutate(order_num_category = if_else(total_orders > 200000, "High", if_else(total_orders > 50000, "Medium", "Low")
+  )) %>% 
+  mutate(order_num_category = factor(order_num_category, levels = c("High", "Medium", "Low"))) %>% 
+  ggplot(aes(y = reorder(aisle, total_orders), x = total_orders)) + 
+  geom_col() +
+  labs(title = "Aisles with 10000+ Orders", x = "Number of Orders", y = "Aisle") + 
+  geom_text(aes(label = format(total_orders, big.mark = ",")), hjust = -.05, size = 3) + 
+  facet_grid(order_num_category ~ ., scales = "free_y", space = "free_y") +
+  scale_x_continuous(expand = expansion(mult = c(0, .1))) + 
+  theme(plot.title = element_text(hjust = .5))
+```
+
+![](hw3_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
