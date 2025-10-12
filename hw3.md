@@ -30,7 +30,7 @@ insta_ez_to_read = instacart %>%
   select(aisle, everything())
 ```
 
-### 1-1. How many aisles are there, and which aisles are the most items ordered from?
+### 1-1 How many aisles are there, and which aisles are the most items ordered from?
 
 ``` r
 # group by same aisles and sum up the order number for the same group 
@@ -65,7 +65,7 @@ According to the printed results, there are 134 different aisles, and
 the most items are ordered from fresh vegetables, with 150609 orders in
 total.
 
-### 1-2. make a plot
+### 1-2 make a plot
 
 ``` r
 plot_df = total_aisle_df %>% 
@@ -86,7 +86,7 @@ plot_df %>%
 
 ![](hw3_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
-### 1-3. Table: three most popular items in ‘baking ingredients’, ‘dog food care’ and ‘packaged vegetables fruits’ with number of orders.
+### 1-3 Table: three most popular items in ‘baking ingredients’, ‘dog food care’ and ‘packaged vegetables fruits’ with number of orders.
 
 ``` r
 df_for_table = insta_ez_to_read %>% 
@@ -109,7 +109,7 @@ df_for_table = insta_ez_to_read %>%
     ## 2 dog food care              Snack Sticks Chicken & Rice Recipe Do…           30
     ## 3 packaged vegetables fruits Organic Baby Spinach                           9784
 
-### 1-4. Table: mean hour of the day at which pink lady apples and coffee ice cream are ordered on each day of the week.
+### 1-4 Table: mean hour of the day at which pink lady apples and coffee ice cream are ordered on each day of the week.
 
 ``` r
 library(tidyr)
@@ -176,7 +176,7 @@ zip_count = a_zillow_df %>%
   summarise(count = n())
 ```
 
-### 2-1-a. How many ZIP codes are observed 116 times?
+### 2-1-a How many ZIP codes are observed 116 times?
 
 ``` r
 obs_116_times = zip_count %>% 
@@ -202,7 +202,7 @@ obs_116_times = zip_count %>%
 According to the printed results, there are 48 zip codes that were
 observed 116 times in total.
 
-### 2-1-b. How many are observed fewer than 10 times?
+### 2-1-b How many are observed fewer than 10 times?
 
 ``` r
 obs_less_than_10 = zip_count %>% 
@@ -228,7 +228,7 @@ obs_less_than_10 = zip_count %>%
 According to the printed results, there are 26 zip codes that were
 observed less than 10 times.
 
-### 2-1-c. Why are some ZIP codes are observed rarely and others observed in each month?
+### 2-1-c Why are some ZIP codes are observed rarely and others observed in each month?
 
 According to a_zillow_df, differences in zip code observation times may
 due to the various data collection starting time. For example, 11368 was
@@ -237,7 +237,7 @@ in this area began later. Besides, there is also possibility that some
 zip codes were merged or split due to administrative changes, which can
 lead to the discontinuity and incomplete of these historical data.
 
-### 2-2-a. Table: average rental price in wach borough and year.
+### 2-2-a Table: average rental price in wach borough and year.
 
 ``` r
 queens_df = a_zillow_df %>% 
@@ -295,7 +295,7 @@ p22a_df = bind_rows(
     ##  9 2023   2562. 3015.    2333. 2285.      3933.
     ## 10 2024   2694. 3127.    2536. 2497.      4078.
 
-### 2-2-b Comment on the table.
+### 2-2-b Comment on the table
 
 Overall speaking, all boroughs show an increase in rental prices from
 2015 to 2024. The New York County stays the most expensive throughout
@@ -367,8 +367,117 @@ ny_23a_df = a_zillow_df %>%
 p23a_df = bind_rows(kings_23a_df, queens_23a_df, richmond_23a_df, bronx_23a_df, ny_23a_df)
 
 p23a_plot = p23a_df %>% 
-  ggplot(aes(x = year, y = ave_rental_prices, fill = as.factor(region_name))) +
-  geom_col() + 
-  facet_grid(. ~ county) + 
-  scale_fill_viridis_d()
+  filter(!is.na(ave_rental_prices)) %>% 
+  ggplot(aes(x = year, 
+             y = ave_rental_prices, 
+             group = region_name)) + 
+  geom_line(color = "#52C0EF") + 
+  geom_point(color = "#52C0EF") + 
+  geom_text(data = . %>% 
+              group_by(region_name) %>% 
+              filter(!is.na(ave_rental_prices)) %>% 
+              slice(1), 
+            aes(label = region_name), 
+            hjust = 1.1,
+            size = 2.5, 
+            color = "black",
+            check_overlap = TRUE) + 
+  facet_wrap(. ~ county, nrow = 2, scales = "free_y") +
+  labs(title = "Average NYC Rental Prices Within ZIP Codes for All Available Years",
+       y = "Average Rental Prices", 
+       x = "Year") + 
+  theme(legen.position = "none", 
+        plot.title = element_text(hjust = .5, size = 20))
 ```
+
+### 2-3-b Comment on the plot
+
+The plot shows the overall changes in the rental prices of regions of
+different zip codes in the five counties. All boroughs exhibit upward
+trends, particularly during the 2021-2024 post-pandemic recovery period.
+There also exists intra-borough disparities. Rental prices in Bronx
+County demonstrate steep percentage growth rates in recent years.
+
+### 2-4-a
+
+``` r
+queens_24a_df = a_zillow_df %>% 
+  separate(date, c("year", "month","day")) %>% 
+  filter(county_name == "Queens County",
+         year == "2023")
+
+kings_24a_df = a_zillow_df %>% 
+  separate(date, c("year", "month","day")) %>% 
+  filter(county_name == "Kings County",
+         year == "2023")
+
+richmond_24a_df = a_zillow_df %>% 
+  separate(date, c("year", "month","day")) %>% 
+  filter(county_name == "Richmond County",
+         year == "2023")
+
+bronx_24a_df = a_zillow_df %>% 
+  separate(date, c("year", "month","day")) %>% 
+  filter(county_name == "Bronx County",
+         year == "2023")
+
+ny_24a_df = a_zillow_df %>% 
+  separate(date, c("year", "month","day")) %>% 
+  filter(county_name == "New York County",
+         year == "2023")
+
+p24a_df = bind_rows(queens_24a_df, kings_24a_df, richmond_24a_df, bronx_24a_df, ny_24a_df)
+
+p24a_plot = p24a_df %>% 
+  ggplot(aes(x = month, 
+           y = value, 
+           group = region_name)) +
+  geom_line(color = "#5EE14D") + 
+  geom_point(color = "#5EE14D") + 
+  geom_text(data = . %>% 
+              group_by(region_name) %>% 
+              filter(!is.na(value)) %>% 
+              slice(1),
+            aes(label = region_name), 
+            hjust = 1.1, 
+            size = 2.5, 
+            color = "black", 
+            check_overlap = TRUE) + 
+  facet_wrap(. ~ county_name, nrow = 2, scales = "free_y") + 
+  labs(title = "Average Rental Price Within Each ZIP Code Over Each Month in 2023",
+       x = "Month", 
+       y = "Rental Prices") + 
+  theme(plot.title = element_text(hjust = .5, size = 20))
+```
+
+### 2-4-b Comment on the plot
+
+This plot shows variations across boroughs in NYC in 2023. Counties such
+as Queens and Kings County show higher prices and larger fluctuations
+compared to the more stable rental prices in Bronx and Richmond
+Counties. Within the same county, there are also intra-county
+disparities in rental prices. Several zip codes exhibit notable
+volatility, which suggest dynamics of the market and others maintain
+relatively steady trajectories throughout the year.
+
+### 2-5 Combine the previous two plots and export to ‘results’ folder.
+
+``` r
+library(patchwork)
+
+combined_plot = p23a_plot / p24a_plot
+ggsave("./results/combined_plot.png", 
+       plot = combined_plot, 
+       width = 20, 
+       height = 32, 
+       dpi = 300)
+```
+
+    ## Warning in plot_theme(plot): The `legen.position` theme element is not defined
+    ## in the element hierarchy.
+
+    ## Warning: Removed 330 rows containing missing values or values outside the scale range
+    ## (`geom_line()`).
+
+    ## Warning: Removed 333 rows containing missing values or values outside the scale range
+    ## (`geom_point()`).
