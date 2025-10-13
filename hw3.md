@@ -583,7 +583,7 @@ high school, there exits blank area in histogram, this may be caused by
 the exclusion of rows with na values in demographic data, or also can be
 caused by sampling bias.
 
-### 3-3-a
+### 3-3-a Plot: total activity by age, sex and education level.
 
 ``` r
 p33a_df = merged_df %>% 
@@ -593,14 +593,19 @@ p33a_df = merged_df %>%
 p33a_plot = p33a_df %>%
   ggplot(aes(x = age, 
              y = activity)) +
-  geom_point(size = .8, alpha = .6, aes(color = sex, fill = sex) ) + 
-  geom_smooth(aes(color = sex), se = FALSE) + 
+  geom_point(size = .8, 
+             alpha = .6, 
+             aes(color = sex, fill = sex) ) + 
+  geom_smooth(aes(color = sex), 
+              se = FALSE) + 
   labs(title = "Total Activity by Age, Sex and Education Level",
        x = "Age", 
        y = "Total Activity") + 
   scale_x_continuous(breaks = seq(20, 80, by = 5)) + 
   facet_wrap(. ~ education) + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 6.5),
+  theme(axis.text.x = element_text(angle = 45, 
+                                   hjust = 1, 
+                                   size = 6.5),
         plot.title = element_text(hjust = .5))
 ```
 
@@ -613,3 +618,52 @@ different perspectives in the living style among different ages and
 education levels. Under the education level which is mare than high
 school, total activity of male of every observed age is higher than
 female.
+
+### 3-4-a Plot: Mean hourly activity by hour, sex and education level.
+
+``` r
+p34a_df = merged_df %>% 
+  pivot_longer(cols = starts_with("min"), 
+               names_to = "minute", 
+               values_to = "activity") %>% 
+  mutate(minute_num = as.numeric(gsub("min", "", minute)), 
+         hour = floor((minute_num - 1) / 60)) %>% 
+  group_by(seqn, education, sex, hour) %>%
+  summarise(hourly_activity_per_person = sum(activity, na.rm = TRUE), 
+            .groups = "drop") %>%
+  group_by(education, sex, hour) %>% 
+  summarise(mean_hourly_activity = mean(hourly_activity_per_person, 
+            na.rm = TRUE), 
+            .groups = "drop")
+
+p34a_plot = p34a_df %>% 
+  ggplot(aes(x = hour, 
+             y = mean_hourly_activity,)) + 
+  geom_point(aes(fill = sex, 
+                 color = sex), 
+             size = .8, 
+             alpha = .6) + 
+  geom_smooth(se = FALSE, 
+              aes(color = sex)) + 
+  facet_wrap(. ~ education) + 
+  labs(x = "Hour", 
+       y = "Mean Hourly Activity", 
+       title = "Mean Hourly Activity by Hour, Sex and Education Level") + 
+  scale_x_continuous(breaks = seq(0, 24, by = 4)) +
+  theme(plot.title = element_text(hjust = .5), 
+        axis.text.x = element_text(angle = 45, 
+                                   hjust = 1, 
+                                   size = 8))
+```
+
+### 3-4-b Comment on the plot
+
+According to p34a_plot, in all three education levels and both two
+genders, the overall trend of mean hourly activity level in a day first
+increases and arrives the peak at around 12pm and then decreases.
+Difference in mean hourly activity level among different education
+levels is not too much. And it can also be noticed that in the beginning
+of the day, mean hourly activity level of male is higher than female.
+Under “equivalent to high school” and “more than high school” education
+level, the mean hourly activity level of female is higher than male
+almost in every hour.
