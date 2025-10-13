@@ -329,3 +329,91 @@ ggsave("./results/combined_plot.png",
        height = 32, 
        dpi = 300)
 ```
+
+## Problem 3
+
+### 3-1 Data tidying
+
+```{r}
+accel_df = readr::read_csv("./data/nhanes_accel.csv") %>% 
+  janitor::clean_names()
+covar_df = readr::read_csv("./data/nhanes_covar.csv", skip = 4) %>% 
+  janitor::clean_names() 
+
+merged_df <- left_join(accel_df, covar_df, by = "seqn") %>% 
+  select(sex, age, bmi, education, everything()) %>% 
+  filter(age >= 21, 
+         !is.na(sex),
+         !is.na(bmi), 
+         !is.na(education)) %>% 
+  mutate(sex = factor(sex, 
+                      levels = c(1, 2), 
+                      labels = c("male", "female")), 
+         education = factor(education, 
+                            levels = c(1, 2, 3), 
+                            labels = c("Less than high school", 
+                                       "High school equivalent", 
+                                       "More than high school"), 
+                            ordered = TRUE))
+```
+
+### 3-2-a Table: number of men and women in each education category
+
+```{r}
+p32a_df = merged_df %>% 
+  select(sex, education)  %>% 
+  group_by(education, sex) %>%
+  summarise(n = n(), .groups = "drop") %>% 
+  pivot_wider(names_from = education, 
+              values_from = n) %>% 
+  print()
+```
+
+### 3-2-b Plot: age distributions for men and women in each education category.
+
+```{r}
+p32b_df = merged_df %>% 
+  select(education, sex, age)
+
+p32b_plot = p32b_df %>% 
+  ggplot(aes(x = age, 
+             fill = sex)) + 
+  geom_histogram(color = "black") +
+  facet_wrap(. ~ education) + 
+  scale_x_continuous(breaks = seq(20, 80, by = 5)) + 
+  labs(title = "Age Distributions for Men and Women in Each Education Category", 
+       x = "Age", 
+       y = "Count") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 6.5))
+```
+
+### 3-2-c Comment on the table and plot
+
+Table: As shown in p32a_df, male has a highest percentage in the education level "high school equivalent", and female has a highest percentage in the education level "more than high school". The distribution of each gender in each education level is relatively balanced. 
+
+Plot: a large percentage of the data is from users who has an education level that is more than high school. In the education level which is high school equivalent, age interval 30-40, 50-60, and 65-70, number of male is far more than female. In the education level which is less than high school, there exits blank area in histogram, this may be caused by the exclusion of rows with na values in demographic data, or also can be caused by sampling bias.
+
+### 3-3-a
+
+```{r}
+p33a_df = merged_df %>% 
+  mutate(activity = rowSums(across(min1:min1440)), na.rm = TRUE) %>% 
+  select(sex, age, education, activity) 
+
+p33a_plot = p33a_df %>%
+  ggplot(aes(x = age, 
+             y = activity)) +
+  geom_point(size = .8, alpha = .6, aes(color = sex, fill = sex) ) + 
+  geom_smooth(aes(color = sex), se = FALSE) + 
+  labs(title = "Total Activity by Age, Sex and Education Level",
+       x = "Age", 
+       y = "Total Activity") + 
+  scale_x_continuous(breaks = seq(20, 80, by = 5)) + 
+  facet_wrap(. ~ education) + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 6.5),
+        plot.title = element_text(hjust = .5))
+```
+
+### 3-3-b Comment on the plot
+
+According to the p33a_plot, of all three education levels, the total activity has an decreasing overall trend. There exist fluctuations in total activity from age 20 to age 80 participant, which may due to different perspectives in the living style among different ages and education levels. Under the education level which is mare than high school, total activity of male of every observed age is higher than female.
