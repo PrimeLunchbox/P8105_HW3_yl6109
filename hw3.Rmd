@@ -21,6 +21,8 @@ insta_ez_to_read = instacart %>%
   select(aisle, everything())
 ```
 
+Description: This original dataset includes 1384617 individual product purchasing history. 15 variables are included, which are order_id, product_id, user_id, add_to_cart_order, eval_set, reordered, order_hour_of_day, days_since_prior_order, aisle_id, department_id, department, aisle, order_number, order_dow. The provided rows illustrate two distinct customer orders.
+
 ### 1-1 How many aisles are there, and which aisles are the most items ordered from?
 
 ```{r}
@@ -72,7 +74,7 @@ df_for_table = insta_ez_to_read %>%
             aisle = first(aisle)) %>% 
   filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits" )) %>% 
   group_by(aisle) %>% 
-  slice_max(total_orders, n = 1) %>% 
+  slice_max(total_orders, n = 3) %>% 
   ungroup() %>% 
   select(aisle, everything()) %>% 
   print()

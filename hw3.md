@@ -30,6 +30,13 @@ insta_ez_to_read = instacart %>%
   select(aisle, everything())
 ```
 
+Description: This original dataset includes 1384617 individual product
+purchasing history. 15 variables are included, which are order_id,
+product_id, user_id, add_to_cart_order, eval_set, reordered,
+order_hour_of_day, days_since_prior_order, aisle_id, department_id,
+department, aisle, order_number, order_dow. The provided rows illustrate
+two distinct customer orders.
+
 ### 1-1 How many aisles are there, and which aisles are the most items ordered from?
 
 ``` r
@@ -96,18 +103,24 @@ df_for_table = insta_ez_to_read %>%
             aisle = first(aisle)) %>% 
   filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits" )) %>% 
   group_by(aisle) %>% 
-  slice_max(total_orders, n = 1) %>% 
+  slice_max(total_orders, n = 3) %>% 
   ungroup() %>% 
   select(aisle, everything()) %>% 
   print()
 ```
 
-    ## # A tibble: 3 × 3
+    ## # A tibble: 9 × 3
     ##   aisle                      product_name                           total_orders
     ##   <chr>                      <chr>                                         <int>
     ## 1 baking ingredients         Light Brown Sugar                               499
-    ## 2 dog food care              Snack Sticks Chicken & Rice Recipe Do…           30
-    ## 3 packaged vegetables fruits Organic Baby Spinach                           9784
+    ## 2 baking ingredients         Pure Baking Soda                                387
+    ## 3 baking ingredients         Cane Sugar                                      336
+    ## 4 dog food care              Snack Sticks Chicken & Rice Recipe Do…           30
+    ## 5 dog food care              Organix Chicken & Brown Rice Recipe              28
+    ## 6 dog food care              Small Dog Biscuits                               26
+    ## 7 packaged vegetables fruits Organic Baby Spinach                           9784
+    ## 8 packaged vegetables fruits Organic Raspberries                            5546
+    ## 9 packaged vegetables fruits Organic Blueberries                            4966
 
 ### 1-4 Table: mean hour of the day at which pink lady apples and coffee ice cream are ordered on each day of the week.
 
